@@ -1,0 +1,318 @@
+Here is the **entire plan in Markdown**, including:
+
+* Tech stack
+* Project setup
+* Supatable schema
+* MVP features
+* Routing structure
+* Full data migration steps (Google Drive + SQL)
+* Deployment and future improvements
+
+---
+
+````markdown
+# 🏥 Clinical Appointments Manager – Next.js + Supatable (Supabase)
+
+A web-based platform to manage medical clients, professionals, rooms, appointments, and clinical records.
+
+---
+
+## 📦 Tech Stack
+
+| Layer           | Technology                 | Purpose                                                        |
+|------------------|----------------------------|----------------------------------------------------------------|
+| Frontend         | Next.js (TypeScript)       | React framework with server-side rendering                     |
+| Styling          | Tailwind CSS               | Utility-first CSS framework                                    |
+| Database         | Supabase + Supatable       | PostgreSQL + UI manager + instant APIs                         |
+| Auth             | Supabase Auth              | Email/password & Google login                                  |
+| Forms/Validation | React Hook Form + Zod      | Validated and typed form logic                                 |
+| Deployment       | Vercel                     | CI/CD and hosting                                              |
+| Migration Tools  | Python (Google API + Supabase) | Scripts for import from Drive and SQL                         |
+
+---
+
+## 🧱 Project Setup (Local Directory)
+
+### 1. Create project
+
+```bash
+npx create-next-app@latest . --typescript
+````
+
+### 2. Install Tailwind CSS
+
+```bash
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+```
+
+Edit `tailwind.config.js`:
+
+```js
+content: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"]
+```
+
+Edit `./styles/globals.css`:
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+---
+
+## 🧬 Supatable Schema (Database Model)
+
+### 🔹 `users` (auto-created by Supabase)
+
+### 🔹 `doctors`
+
+| Column    | Type    | Description   |
+| --------- | ------- | ------------- |
+| id        | UUID    | PK            |
+| user\_id  | UUID    | FK to `users` |
+| name      | Text    |               |
+| specialty | Text    |               |
+| phone     | Text    |               |
+| active    | Boolean |               |
+
+---
+
+### 🔹 `rooms`
+
+| Column   | Type | Description        |
+| -------- | ---- | ------------------ |
+| id       | UUID | PK                 |
+| name     | Text | e.g., "Gabinete 1" |
+| location | Text | Floor, wing, etc.  |
+| notes    | Text | Optional           |
+
+---
+
+### 🔹 `clients`
+
+| Column      | Type      | Description    |
+| ----------- | --------- | -------------- |
+| id          | UUID      | PK             |
+| name        | Text      |                |
+| birth\_date | Date      |                |
+| email       | Text      |                |
+| phone       | Text      |                |
+| notes       | Text      | Optional       |
+| created\_at | Timestamp | Default: now() |
+
+---
+
+### 🔹 `appointments`
+
+| Column        | Type      | Description                 |
+| ------------- | --------- | --------------------------- |
+| id            | UUID      | PK                          |
+| client\_id    | UUID      | FK → clients.id             |
+| doctor\_id    | UUID      | FK → doctors.id             |
+| room\_id      | UUID      | FK → rooms.id               |
+| date          | Timestamp | Date + time of appointment  |
+| duration\_min | Integer   | Duration in minutes         |
+| status        | Text      | scheduled / done / canceled |
+| notes         | Text      | Optional summary            |
+
+---
+
+### 🔹 `clinical_notes`
+
+| Column          | Type      | Description          |
+| --------------- | --------- | -------------------- |
+| id              | UUID      | PK                   |
+| appointment\_id | UUID      | FK → appointments.id |
+| summary         | Text      |                      |
+| diagnosis       | Text      |                      |
+| prescription    | Text      |                      |
+| created\_at     | Timestamp | Default: now()       |
+
+---
+
+## ✨ MVP Features
+
+### ✅ Client Management
+
+* Add, edit, delete clients
+* Search by name, phone
+
+### ✅ Appointment Scheduler
+
+* Book, update, cancel appointments
+* Filter by doctor / room / date
+* Calendar view (e.g. FullCalendar)
+
+### ✅ Clinical Records
+
+* Add clinical notes per appointment
+* View patient history
+
+### ✅ Doctor + Room System
+
+* Assign doctors and rooms to appointments
+* Manage availability
+
+---
+
+## 📁 Pages & Routing (Next.js)
+
+| Page                 | Purpose                             |
+| -------------------- | ----------------------------------- |
+| `/login`             | Auth page                           |
+| `/dashboard`         | Overview dashboard                  |
+| `/clients`           | List & manage patients              |
+| `/appointments`      | Schedule/calendar                   |
+| `/appointments/[id]` | Appointment detail + clinical sheet |
+| `/doctors`           | Manage medical staff                |
+| `/rooms`             | Manage cabinets/consultation rooms  |
+
+---
+
+## 🔄 Data Migration Plan
+
+### 📂 Part 1: Google Drive Docs → Supabase
+
+Each doc = one patient, stored as `.docx` or `.gdoc`.
+
+#### Tools
+
+* Google Drive API (Python)
+* Supabase Python client or REST API
+* NLP (optional) to parse content
+
+#### Steps
+
+1. **Access Google Drive**
+
+   * Enable Drive API on Google Cloud
+   * Share the folder with the API service account
+   * Use `google-api-python-client` to list all `.gdoc` files
+
+2. **Extract Document Content**
+
+   * Download or read file content as text
+   * Parse name, birth date, and all clinical history blocks
+   * Use heuristics for date markers or diagnosis sections
+
+3. **Insert to Supabase**
+
+   * Create client record (`clients`)
+   * Create one or more appointments (`appointments`)
+   * Add `clinical_notes` for each appointment-like block
+
+---
+
+### 🗃️ Part 2: Old App SQL DB → Supabase
+
+Assuming access to legacy SQL schema.
+
+#### Tools
+
+* Python with `sqlite3` or `sqlalchemy`
+* Supabase Python client or REST API
+
+#### Steps
+
+1. **Export or Connect**
+
+   * Export tables as `.csv` or connect to live DB
+   * Use SQL queries to extract:
+
+     * Clients
+     * Appointments
+     * Clinical notes
+     * (Doctors & rooms if available)
+
+2. **Transform Schema**
+
+   * Map old columns to Supabase model
+   * Clean/convert datetime values to ISO
+   * Deduplicate where needed
+
+3. **Push to Supabase**
+
+   * Use `supabase-py` or API requests to batch insert
+   * Match foreign keys (e.g. client → appointments → notes)
+
+4. **Validate**
+
+   * Run data quality checks
+   * Manually inspect samples in Supatable
+
+---
+
+## 🚀 Deployment (Vercel)
+
+1. Push your code to GitHub
+2. Go to [vercel.com](https://vercel.com) → Import project
+3. Set environment variables:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-key
+```
+
+4. Deploy 🎉
+
+---
+
+## 🧠 Future Features
+
+* File uploads for reports
+* Custom appointment types
+* SMS/email reminders
+* Payment integration (MB Way, Stripe)
+* Teleconsultation (video links)
+* Multiclinic support
+* GDPR compliance
+
+---
+
+## 📁 Suggested Project Structure
+
+```
+/pages
+  /clients
+  /appointments
+  /doctors
+  /rooms
+/components
+  ClientForm.tsx
+  AppointmentForm.tsx
+  ClinicalSheet.tsx
+  ProtectedRoute.tsx
+/lib
+  supabaseClient.ts
+  auth.ts
+  migration/
+    migrate_from_drive.py
+    migrate_from_sql.py
+```
+
+---
+
+## ✅ Final Setup Checklist
+
+* [ ] Supabase project & tables via Supatable
+* [ ] Tailwind installed and working
+* [ ] Auth working with email & Google login
+* [ ] Pages for clients, doctors, rooms, appointments
+* [ ] Calendar integration (optional)
+* [ ] Google Drive import script complete
+* [ ] SQL data import complete
+* [ ] Deployment on Vercel
+
+```
+
+---
+
+If you'd like, I can now provide:
+- `migrate_from_drive.py` script
+- Database ER diagram (image or Mermaid.js)
+- Template components/pages for each entity
+
+Would you like any of these?
+```

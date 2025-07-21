@@ -1,0 +1,28 @@
+# Dependências para scripts de migração
+
+# Supabase client
+supabase>=2.0.0
+
+# Google APIs
+google-api-python-client>=2.0.0
+google-auth-httplib2>=0.1.0
+google-auth-oauthlib>=1.0.0
+
+# Data processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Date/time handling
+python-dateutil>=2.8.0
+
+# File handling
+openpyxl>=3.1.0  # For Excel files
+python-docx>=0.8.11  # For Word documents
+
+# Database connections
+sqlite3  # Built-in, no install needed
+sqlalchemy>=2.0.0  # For advanced SQL operations
+
+# Utilities
+requests>=2.31.0
+tqdm>=4.65.0  # Progress bars 
