@@ -13,7 +13,7 @@ import Link from 'next/link'
 const inviteSchema = z.object({
   email: z.string().email('Email inválido'),
   role: z.enum(['admin', 'doctor', 'admin_doctor'], {
-    required_error: 'Tipo de utilizador é obrigatório'
+    message: 'Tipo de utilizador é obrigatório'
   })
 })
 

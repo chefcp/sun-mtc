@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Layout from '@/components/Layout'
 import { supabase, Client, Appointment, ClinicalNote } from '@/lib/supabase'
-import { ArrowLeft, User, Calendar, FileText, Edit, Phone, Mail, Birth, Clock, MapPin, Stethoscope } from 'lucide-react'
+import { ArrowLeft, User, Calendar, FileText, Edit, Phone, Mail, Cake, Clock, MapPin, Stethoscope } from 'lucide-react'
 import Link from 'next/link'
 
 interface AppointmentWithDetails extends Appointment {
@@ -234,7 +234,7 @@ export default function ClientDetailsPage() {
                   </div>
 
                   <div className="flex items-center">
-                    <Birth className="h-5 w-5 text-gray-400 mr-3" />
+                    <Cake className="h-5 w-5 text-gray-400 mr-3" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">
                         {formatDate(client.birth_date)} ({calculateAge(client.birth_date)} anos)
