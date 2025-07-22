@@ -163,8 +163,8 @@ export default function ClinicalNotesPage() {
 
         if (error) throw error
         notesData = data
-      } catch (error) {
-        console.warn('New columns not available, using basic query:', error)
+             } catch (fetchError) {
+         console.warn('New columns not available, using basic query:', fetchError)
         // Fallback to basic columns only
         const { data, error: basicError } = await supabase
           .from('clinical_notes')
@@ -204,8 +204,8 @@ export default function ClinicalNotesPage() {
 
             return { 
               ...note,
-              is_private: note.is_private || false,
-              urgency_level: note.urgency_level || 'low',
+              is_private: (note as any).is_private || false,
+              urgency_level: (note as any).urgency_level || 'low',
               versions: versions || [],
               doctor: null // Simplified for now
             }
