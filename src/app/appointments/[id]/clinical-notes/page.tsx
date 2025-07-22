@@ -7,7 +7,7 @@ import { supabase, Appointment, ClinicalNote } from '@/lib/supabase'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Save, ArrowLeft, FileText, User, Calendar, Clock, Edit, History, Search, Filter, Eye, EyeOff, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import { Save, ArrowLeft, FileText, User, Calendar, Clock, Edit, History, Search, Filter, EyeOff, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 
 const clinicalNoteSchema = z.object({
@@ -51,11 +51,9 @@ export default function ClinicalNotesPage() {
   const [clinicalNotes, setClinicalNotes] = useState<ClinicalNoteWithHistory[]>([])
   const [editingNote, setEditingNote] = useState<string | null>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
-  const [userProfile, setUserProfile] = useState<any>(null)
   const [selectedView, setSelectedView] = useState<'current' | 'history' | 'private'>('current')
   const [searchTerm, setSearchTerm] = useState('')
   const [urgencyFilter, setUrgencyFilter] = useState('all')
-  const [showPrivateNotes, setShowPrivateNotes] = useState(false)
   const [selectedNoteHistory, setSelectedNoteHistory] = useState<string | null>(null)
   const router = useRouter()
   const params = useParams()
@@ -66,7 +64,6 @@ export default function ClinicalNotesPage() {
     handleSubmit,
     reset,
     setValue,
-    watch,
     formState: { errors }
   } = useForm<ClinicalNoteFormData>({
     resolver: zodResolver(clinicalNoteSchema),
@@ -119,7 +116,6 @@ export default function ClinicalNotesPage() {
         return
       }
 
-      setUserProfile(profile)
       fetchData()
     } catch (error) {
       console.error('Error checking access:', error)

@@ -56,6 +56,11 @@ export interface ClinicalNote {
   summary?: string
   diagnosis?: string
   prescription?: string
+  is_private?: boolean
+  urgency_level?: 'low' | 'medium' | 'high' | 'critical'
+  created_by?: string
+  updated_by?: string
+  updated_at?: string
   created_at: string
 }
 
