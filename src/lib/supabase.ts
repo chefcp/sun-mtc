@@ -42,7 +42,7 @@ export interface Appointment {
   room_id: string
   date: string
   duration_min: number
-  status: 'scheduled' | 'done' | 'canceled'
+  status: 'scheduled' | 'in_progress' | 'done' | 'canceled'
   notes?: string
   client?: Client
   doctor?: Doctor
