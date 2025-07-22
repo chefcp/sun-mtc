@@ -25,7 +25,7 @@ interface ClinicalNoteWithHistory extends ClinicalNote {
     id: string
     name: string
     specialty: string
-  }
+  } | null
   versions?: NoteVersion[]
 }
 
@@ -209,8 +209,8 @@ export default function ClinicalNotesPage() {
               versions: versions || [],
               doctor: null // Simplified for now
             }
-          } catch (error) {
-            console.warn('Could not fetch versions for note:', note.id)
+          } catch (versionError) {
+            console.warn('Could not fetch versions for note:', note.id, versionError)
             return { 
               ...note,
               is_private: false,
