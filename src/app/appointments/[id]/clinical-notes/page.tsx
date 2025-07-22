@@ -140,31 +140,85 @@ export default function ClinicalNotesPage() {
       if (appointmentError) throw appointmentError
       setAppointment(appointmentData)
 
-      // Fetch clinical notes with doctor information and versions
-      const { data: notesData, error: notesError } = await supabase
-        .from('clinical_notes')
-        .select(`
-          *,
-          doctor:doctors(id, name, specialty)
-        `)
-        .eq('appointment_id', appointmentId)
-        .order('created_at', { ascending: false })
+      // Try to fetch clinical notes with new columns, fallback to basic columns
+      let notesData = null
+      try {
+        const { data, error } = await supabase
+          .from('clinical_notes')
+          .select(`
+            id,
+            appointment_id,
+            summary,
+            diagnosis,
+            prescription,
+            created_at,
+            is_private,
+            urgency_level,
+            created_by,
+            updated_by,
+            updated_at
+          `)
+          .eq('appointment_id', appointmentId)
+          .order('created_at', { ascending: false })
 
-      if (notesError) throw notesError
+        if (error) throw error
+        notesData = data
+      } catch (error) {
+        console.warn('New columns not available, using basic query:', error)
+        // Fallback to basic columns only
+        const { data, error: basicError } = await supabase
+          .from('clinical_notes')
+          .select(`
+            id,
+            appointment_id,
+            summary,
+            diagnosis,
+            prescription,
+            created_at
+          `)
+          .eq('appointment_id', appointmentId)
+          .order('created_at', { ascending: false })
 
-      // For each note, fetch its version history if it exists
+        if (basicError) throw basicError
+        notesData = data
+      }
+
+      // For each note, try to fetch its version history
       const notesWithHistory = await Promise.all(
         (notesData || []).map(async (note) => {
-          const { data: versions } = await supabase
-            .from('clinical_note_versions')
-            .select(`
-              *,
-              doctor:doctors(name, specialty)
-            `)
-            .eq('note_id', note.id)
-            .order('version_number', { ascending: false })
+          try {
+            const { data: versions } = await supabase
+              .from('clinical_note_versions')
+              .select(`
+                id,
+                note_id,
+                version_number,
+                summary,
+                diagnosis,
+                prescription,
+                created_by,
+                created_at
+              `)
+              .eq('note_id', note.id)
+              .order('version_number', { ascending: false })
 
-          return { ...note, versions: versions || [] }
+            return { 
+              ...note,
+              is_private: note.is_private || false,
+              urgency_level: note.urgency_level || 'low',
+              versions: versions || [],
+              doctor: null // Simplified for now
+            }
+          } catch (error) {
+            console.warn('Could not fetch versions for note:', note.id)
+            return { 
+              ...note,
+              is_private: false,
+              urgency_level: 'low',
+              versions: [],
+              doctor: null
+            }
+          }
         })
       )
 
@@ -172,7 +226,7 @@ export default function ClinicalNotesPage() {
 
     } catch (error) {
       console.error('Error fetching data:', error)
-      alert('Erro ao carregar dados')
+      alert(`Erro ao carregar dados: ${error.message}`)
       router.push('/appointments')
     } finally {
       setLoading(false)
