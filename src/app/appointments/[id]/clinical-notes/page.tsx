@@ -226,7 +226,7 @@ export default function ClinicalNotesPage() {
 
     } catch (error) {
       console.error('Error fetching data:', error)
-      alert(`Erro ao carregar dados: ${error.message}`)
+      alert(`Erro ao carregar dados: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
       router.push('/appointments')
     } finally {
       setLoading(false)
