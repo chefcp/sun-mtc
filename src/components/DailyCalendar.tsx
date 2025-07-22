@@ -8,9 +8,9 @@ interface Appointment {
   id: string
   date: string
   duration_min: number
-  client: { name: string }
-  doctor: { name: string }
-  room: { id: string; name: string }
+  client: { name: string } | null
+  doctor: { name: string } | null
+  room: { id: string; name: string } | null
   status: string
 }
 
@@ -66,9 +66,9 @@ export default function DailyCalendar() {
           date,
           duration_min,
           status,
-          client:clients(name),
-          doctor:doctors(name),
-          room:rooms(id, name)
+          clients!inner(name),
+          doctors!inner(name),
+          rooms!inner(id, name)
         `)
         .gte('date', dateStart.toISOString())
         .lte('date', dateEnd.toISOString())
@@ -76,8 +76,19 @@ export default function DailyCalendar() {
 
       if (appointmentsError) throw appointmentsError
 
+      // Transform the data to match our interface
+      const transformedAppointments = (appointmentsData || []).map((apt: any) => ({
+        id: apt.id,
+        date: apt.date,
+        duration_min: apt.duration_min,
+        status: apt.status,
+        client: apt.clients ? { name: apt.clients.name } : null,
+        doctor: apt.doctors ? { name: apt.doctors.name } : null,
+        room: apt.rooms ? { id: apt.rooms.id, name: apt.rooms.name } : null
+      }))
+
       setRooms(roomsData || [])
-      setAppointments(appointmentsData || [])
+      setAppointments(transformedAppointments)
     } catch (error) {
       console.error('Error fetching calendar data:', error)
     } finally {
@@ -204,7 +215,7 @@ export default function DailyCalendar() {
               {/* Room Columns */}
               {rooms.map((room) => {
                 const roomAppointments = appointments.filter(
-                  app => app.room?.id === room.id
+                  apt => apt.room?.id === room.id
                 )
 
                 return (

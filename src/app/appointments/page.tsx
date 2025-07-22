@@ -179,14 +179,7 @@ export default function AppointmentsPage() {
     return matchesSearch && matchesStatus && matchesRoom && matchesDoctor && matchesDate
   })
 
-  const getViewModeIcon = (mode: ViewMode) => {
-    switch (mode) {
-      case 'list': return List
-      case 'daily': return Calendar
-      case 'weekly': return Calendar
-      default: return List
-    }
-  }
+
 
   return (
     <Layout>

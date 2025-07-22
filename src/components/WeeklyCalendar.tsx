@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Calendar, Clock, User, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar, User, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface Appointment {
   id: string
   date: string
   duration_min: number
-  client: { name: string }
-  doctor: { name: string }
-  room: { id: string; name: string }
+  client: { name: string } | null
+  doctor: { name: string } | null
+  room: { id: string; name: string } | null
   status: string
 }
 
@@ -21,7 +21,6 @@ interface Room {
 }
 
 const DAYS_OF_WEEK = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo']
-const TIME_SLOTS = Array.from({ length: 13 }, (_, i) => i + 8) // 8h to 20h
 
 const ROOM_COLORS = [
   'bg-blue-100 border-blue-300 text-blue-800',
@@ -85,9 +84,9 @@ export default function WeeklyCalendar() {
           date,
           duration_min,
           status,
-          client:clients(name),
-          doctor:doctors(name),
-          room:rooms(id, name)
+          clients!inner(name),
+          doctors!inner(name),
+          rooms!inner(id, name)
         `)
         .gte('date', weekStart.toISOString())
         .lte('date', weekEnd.toISOString())
@@ -95,8 +94,19 @@ export default function WeeklyCalendar() {
 
       if (appointmentsError) throw appointmentsError
 
+      // Transform the data to match our interface
+      const transformedAppointments = (appointmentsData || []).map((apt: any) => ({
+        id: apt.id,
+        date: apt.date,
+        duration_min: apt.duration_min,
+        status: apt.status,
+        client: apt.clients ? { name: apt.clients.name } : null,
+        doctor: apt.doctors ? { name: apt.doctors.name } : null,
+        room: apt.rooms ? { id: apt.rooms.id, name: apt.rooms.name } : null
+      }))
+
       setRooms(roomsData || [])
-      setAppointments(appointmentsData || [])
+      setAppointments(transformedAppointments)
     } catch (error) {
       console.error('Error fetching calendar data:', error)
     } finally {
