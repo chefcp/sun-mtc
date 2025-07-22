@@ -424,7 +424,7 @@ export default function AppointmentsPage() {
                                   <Eye className="h-4 w-4" />
                                 </Link>
                                 <Link
-                                  href={`/appointments/${appointment.id}`}
+                                  href={`/appointments/${appointment.id}/edit`}
                                   className="text-indigo-600 hover:text-indigo-900"
                                   title="Editar consulta"
                                 >
